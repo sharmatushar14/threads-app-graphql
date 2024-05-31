@@ -2,6 +2,7 @@ import express from "express"
 import { ApolloServer } from "@apollo/server";
 import { expressMiddleware } from "@apollo/server/express4";
 import { graphql } from "graphql";
+import { prismaClient } from "./lib/db";
 
 async function init() {const app = express();
 app.use(express.json());
@@ -15,14 +16,39 @@ const gqlserver =  new ApolloServer({
         hello: String
         say(name: String): String 
     }
-    `,
+    type Mutation {
+        createUser(firstName: String!, lastName: String!, email: String!, password: String!): Boolean
+    }
+    `, //To make them required, ! is used to make them required, by default they are optional
     resolvers: {
         Query: {
             hello: ()=> {return `Hey, There I am a GraphQL Server`},
             say: (_, {name}: {name: String})=> `Hey ${name}, How are you!`
+        },
+        Mutation: {
+            createUser: async(_, {firstName, lastName, email, password}:
+                {
+                    firstName: string
+                    lastName: string
+                    email: string
+                    password: string
+                }
+            )=>{
+                await prismaClient.user.create({
+                    data: {
+                        email,
+                        firstName,
+                        lastName,
+                        password,
+                        salt: "random_salt",
+                    }
+                })
+            
+                return true;
+            }
         }
     }
-})
+});
 
 
 //Start the GQL Server
