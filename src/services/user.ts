@@ -18,8 +18,12 @@ export interface CreateUserPayload {
 
 class UserService {
     private static generateHash(salt: string, password: string){
+        if (!salt || !password) {
+            throw new Error("Salt and password must be provided");
+        }
         const hashedPassword = createHmac("sha256", salt).update(password).digest("hex");
-        return hashedPassword;
+        console.log(hashedPassword);
+        return hashedPassword;    
     }
 
     public static createUser(payload: CreateUserPayload) {
@@ -50,12 +54,22 @@ class UserService {
         const {email, password} = payload;
         const user = await UserService.getUserByEmail(email);
         if(!user) throw new Error("User not found")
+        console.log(user);
+        
+        const usersalt = user.salt.toString();
+        console.log(usersalt);
+        
+        
+        try {
+            const userHashPassword = UserService.generateHash(usersalt, password);
+            console.log("Hashed password:", userHashPassword);
+                    
+            if(userHashPassword !== user.password){
+              throw new Error("Incorrect Password");
+        }
 
-        const usersalt = user.salt;
-        const userHashPassword = UserService.generateHash(usersalt, password);
-
-        if(userHashPassword !== user.password){
-            throw new Error("Incorrect Password");
+        } catch (error) {
+            console.error("Error generating hash:", error);
         }
 
         //Generate Token

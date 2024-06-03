@@ -7,18 +7,18 @@ async function createApolloGraphqlServer(){
         //Schema sort of
         `
         type Query {
-
+            ${User.queries}
         }
         type Mutation {
-
+            ${User.mutations}
         }
         `, //To make them required, ! is used to make them required, by default they are optional
         resolvers: {
             Query: {
-
+                ...User.resolvers.queries
             },
-            Mutation: {
-
+            Mutation: { 
+                ...User.resolvers.mutations
             }
         }
     });
