@@ -18,8 +18,11 @@ export interface CreateUserPayload {
 
 class UserService {
     private static generateHash(salt: string, password: string){
-        if (!salt || !password) {
-            throw new Error("Salt and password must be provided");
+        if (!salt) {
+            throw new Error("Salt must be provided");
+        }
+        if (!password) {
+            throw new Error("Password must be provided");
         }
         const hashedPassword = createHmac("sha256", salt).update(password).digest("hex");
         console.log(hashedPassword);
@@ -50,6 +53,10 @@ class UserService {
         return prismaClient.user.findUnique({where: {email}});
     }
 
+    public static getUserById(id: string){
+        return prismaClient.user.findUnique({where: {id}})
+    }
+
     public static async getUserToken(payload: GetUserTokenPayload){
         const {email, password} = payload;
         const user = await UserService.getUserByEmail(email);
@@ -75,6 +82,10 @@ class UserService {
         //Generate Token
         const token = JWT.sign({id: user.id, email: user.email}, JWT_SECRET);
         return token;
+    }
+
+    public static decodeJWTToken(token: string){
+        return JWT.verify(token, JWT_SECRET)
     }
 }
 

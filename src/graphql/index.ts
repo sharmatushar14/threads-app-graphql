@@ -6,6 +6,7 @@ async function createApolloGraphqlServer(){
         typeDefs:
         //Schema sort of
         `
+        ${User.typeDefs} #Provided in typedef.js for User Type
         type Query {
             ${User.queries}
         }

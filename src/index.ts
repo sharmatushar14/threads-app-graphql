@@ -1,13 +1,12 @@
 import express from "express"
 import { expressMiddleware } from "@apollo/server/express4";
 import createApolloGraphqlServer from "./graphql";
+import UserService from "./services/user";
 
 
 async function init() {const app = express();
 app.use(express.json());
 const PORT =  Number(process.env.PORT) || 8000;
-
-
 
 app.get('/', (req, res)=>{
     res.json({
@@ -15,7 +14,18 @@ app.get('/', (req, res)=>{
     })
 })
 
-app.use('/graphql', expressMiddleware(await createApolloGraphqlServer()))
+app.use('/graphql', expressMiddleware(await createApolloGraphqlServer(), {
+    context: async({req})=>{
+        // @ts-ignore
+        const token =  req.headers["token"];
+        try {
+            const user = UserService.decodeJWTToken(token as string);
+            return {user}
+        } catch (error) {
+            return {}
+        }
+    }
+}))
 
 app.listen(PORT, ()=>{
     console.log(`Server is running on ${PORT}`);
